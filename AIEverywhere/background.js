@@ -62,14 +62,30 @@ function callChatGPT(text, options, callback) {
     fetch('https://api.openai.com/v1/engines/chatgpt/completions', {
         method: 'POST',
         headers: {
-            'Authorization': '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',
+            'Authorization': process.env.OPEN_API_AI_KEY,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     })
-        .then(response => response.json())
-        .then(data => callback(data.choices[0].text))
-        .catch(error => console.error('Error:', error));
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data);
+            if (data.choices && data.choices.length > 0) {
+                callback(data.choices[0].text);
+            } else {
+                console.error('No choices available or bad API response', data);
+                alert('Failed to get a valid response from the API');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error making API request');
+        });
 }
 
 function replaceText(newText) {
