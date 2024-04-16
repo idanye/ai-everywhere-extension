@@ -2,23 +2,18 @@
   "manifest_version": 3,
   "name": "HighlightTextInYellow",
   "version": "1.0",
-  "permissions": ["contextMenus", "activeTab"],
+  "description": "Highlight selected text in yellow via the context menu.",
+  "permissions": ["contextMenus", "activeTab", "scripting"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "",
-    "default_icon": "icon.png"
+    "default_icon": "icon-128x128.png"
   },
   "icons": {
     "16": "icon-16x16.png",
     "48": "icon-48x48.png",
     "128": "icon-128x128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content_script.js"]
-    }
-  ]
+  }
 }

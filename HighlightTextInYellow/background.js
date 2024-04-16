@@ -1,22 +1,34 @@
-chrome.runtime.onInstalled.addListener(function() {
+chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
-        id: "highlight-text",
-        title: "HighlightTextInYellow",
+        id: "highlight",
+        title: "Highlight Text in Yellow",
         contexts: ["selection"]
     });
 });
 
-chrome.contextMenus.onClicked.addListener(function(info, tab) {
-    if (info.menuItemId === "highlight-text") {
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    // Check if the URL is not a Chrome URL
+    if (!tab.url.startsWith('chrome://')) {
         chrome.scripting.executeScript({
-            target: {tabId: tab.id},
-            function: setPageBackgroundColor
+            target: { tabId: tab.id },
+            function: highlightText
+        }).catch(error => {
+            console.error('Script failed to execute:', error.message);
         });
+    } else {
+        console.log('Highlighting is not allowed on chrome:// URLs.');
     }
 });
 
-function setPageBackgroundColor() {
-    chrome.tabs.executeScript({
-        code: 'document.execCommand("HiliteColor", false, "yellow");'
-    });
+function highlightText() {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.backgroundColor = 'yellow';
+        span.textContent = selection.toString();
+        range.deleteContents();
+        range.insertNode(span);
+        selection.removeAllRanges(); // Optionally clear the selection
+    }
 }
