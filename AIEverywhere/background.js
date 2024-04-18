@@ -24,27 +24,43 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         let options = {};
         switch (info.menuItemId) {
             case 'improveEnglish':
-                options = { temperature: 0.5 };
+                options = {
+                    temperature: 0.5,
+                    systemPrompt: "You are an English teacher",
+                    userPrompt: "Improve this text's english:\n",
+                };
                 break;
             case 'improveEnglishCreative':
-                options = { temperature: 1.0 };
+                options = {
+                    temperature: 1.0,
+                    systemPrompt: "You are an English teacher",
+                    userPrompt: "Improve this text's english and be creative:\n",
+                };
                 break;
             case 'addCommentsToCode':
-                options = { temperature: 0.5, prompt: "Add comments to this code: " + info.selectionText };
+                options = {
+                    temperature: 0.5,
+                    systemPrompt: "You are an English teacher",
+                    userPrompt: "Add comments to this text:\n",
+                };
                 break;
             case 'summarizeToSingleParagraph':
-                options = { temperature: 0.5, prompt: "Summarize this to a single paragraph: " + info.selectionText };
+                options = {
+                    temperature: 0.5,
+                    systemPrompt: "You are an English teacher",
+                    userPrompt: "Summarize this text to a single paragraph:\n"
+                };
                 break;
             case 'aiQuiz':
-                options = { temperature: 0.5, prompt: "Create 10 multiple choice questions from this text: " + info.selectionText };
+                options = {
+                    temperature: 0.5,
+                    systemPrompt: "You are an English teacher",
+                    userPrompt: "Create 10 multiple choice questions from this text:\n"
+                };
                 break;
         }
         callChatGPT(info.selectionText, options, response => {
-            chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: replaceText,
-                args: [response]
-            });
+            replaceText(response);
         });
     }
 });
@@ -69,17 +85,28 @@ function showError(tabId, errorMessage) {
 
 function callChatGPT(text, options, callback, tabId) {
     console.log('Making API Call with:', text, options); // Log the request details
+    let bodyData = {
+        "model": "gpt-3.5-turbo",
+        "messages": [
+            {
+                "role": "system",
+                "content": options.systemPrompt // Added system role based on the new structure
+            },
+            {
+                "role": "user",
+                "content": options.userPrompt + text,
+            }
+        ],
+        "temperature": options.temperature
+    };
+
     fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${API_KEY}`,
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            "model": "gpt-3.5-turbo",
-            "prompt": text,
-            "max_tokens": 150,
-        }),
+        body: JSON.stringify(bodyData),
     })
         .then(response => {
             console.log('API Response Received:', response);
@@ -87,10 +114,10 @@ function callChatGPT(text, options, callback, tabId) {
         })
         .then(data => {
             console.log('API Data:', data); // Log the actual data received
-            if (data.choices && data.choices.length > 0 && data.choices[0].text.trim() !== '') {
-                callback(data.choices[0].text);
+            if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content.trim() !== '') {
+                callback(data.choices[0].message.content);
             } else {
-                showError(tabId, 'No valid response from the API.');
+                showError(tabId, 'No valid response from the API or empty text.');
             }
         })
         .catch(error => {
@@ -100,5 +127,7 @@ function callChatGPT(text, options, callback, tabId) {
 }
 
 function replaceText(newText) {
-    document.execCommand('insertText', false, newText);
+    chrome.storage.local.set({result: newText}, function() {
+        console.log('Result saved to storage.');
+    });
 }

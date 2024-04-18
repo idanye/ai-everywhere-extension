@@ -6,7 +6,8 @@
     "contextMenus",
     "activeTab",
     "scripting",
-    "notifications"
+    "notifications",
+    "storage"
   ],
   "host_permissions": [
     "https://api.openai.com/*"
