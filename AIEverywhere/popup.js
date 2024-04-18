@@ -1,29 +1,28 @@
-// popup.js
 document.addEventListener('DOMContentLoaded', function() {
+    function formatResults(text) {
+        // Split the text by newlines and wrap each line in <p> tags
+        // or convert them to list items if they appear to be bullet points
+        return text.split('\n').map(line => {
+            if (line.trim().startsWith('-')) { // Simple check for bullet points
+                return '<li>' + line.trim().substring(1).trim() + '</li>';
+            } else {
+                return '<p>' + line.trim() + '</p>';
+            }
+        }).join('');
+    }
+
     function updateResults() {
         chrome.storage.local.get(['result'], function(data) {
+            const resultsContainer = document.getElementById('results');
             if (data.result) {
-                document.getElementById('results').textContent = data.result;
+                // Format and set the results as HTML
+                resultsContainer.innerHTML = formatResults(data.result);
             } else {
-                document.getElementById('results').textContent = "No results to display.";
+                resultsContainer.textContent = "No results to display.";
             }
         });
     }
 
     // Update results upon opening the popup
     updateResults();
-
-    // Optionally, add a manual refresh button or periodically update the results
-    document.getElementById('refresh').addEventListener('click', function() {
-        updateResults();
-    });
-
-    // To handle updates more dynamically, you might consider using a chrome.storage.onChanged listener here
-    chrome.storage.onChanged.addListener(function(changes, namespace) {
-        for (var key in changes) {
-            if (key === 'result') {
-                updateResults();
-            }
-        }
-    });
 });

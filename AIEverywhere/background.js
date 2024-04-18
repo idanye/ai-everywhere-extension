@@ -5,7 +5,7 @@ chrome.runtime.onInstalled.addListener(() => {
     const menuItems = [
         {id: "improveEnglish", title: "Improve English"},
         {id: "improveEnglishCreative", title: "Improve English - Creative"},
-        {id: "addCommentsToCode", title: "Add Comments to Code"},
+        {id: "addCommentsToCode", title: "Add Comments to Text"},
         {id: "summarizeToSingleParagraph", title: "Summarize to a Single Paragraph"},
         {id: "aiQuiz", title: "AI Quiz"}
     ];
@@ -37,18 +37,18 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     userPrompt: "Improve this text's english and be creative:\n",
                 };
                 break;
-            case 'addCommentsToCode':
+            case 'addCommentsToText':
                 options = {
                     temperature: 0.5,
                     systemPrompt: "You are an English teacher",
-                    userPrompt: "Add comments to this text:\n",
+                    userPrompt: "Add comments to the text, clearly state the points:\n",
                 };
                 break;
             case 'summarizeToSingleParagraph':
                 options = {
                     temperature: 0.5,
                     systemPrompt: "You are an English teacher",
-                    userPrompt: "Summarize this text to a single paragraph:\n"
+                    userPrompt: "Summarize this text to a single paragraph, capture the main essence:\n"
                 };
                 break;
             case 'aiQuiz':
