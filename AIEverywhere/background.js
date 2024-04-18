@@ -1,29 +1,21 @@
+const API_KEY='sk-proj-7wv0MMqO1qUwMppbQL4BT3BlbkFJLdl7NT7suxhUFBGVR3Bk'
+
 chrome.runtime.onInstalled.addListener(() => {
     const contexts = ["selection"];
-    chrome.contextMenus.create({
-        id: "improveEnglish",
-        title: "Improve English",
-        contexts: contexts
-    });
-    chrome.contextMenus.create({
-        id: "improveEnglishCreative",
-        title: "Improve English - Creative",
-        contexts: contexts
-    });
-    chrome.contextMenus.create({
-        id: "addCommentsToCode",
-        title: "Add Comments to Code",
-        contexts: contexts
-    });
-    chrome.contextMenus.create({
-        id: "summarizeToSingleParagraph",
-        title: "Summarize to a Single Paragraph",
-        contexts: contexts
-    });
-    chrome.contextMenus.create({
-        id: "aiQuiz",
-        title: "AI Quiz",
-        contexts: contexts
+    const menuItems = [
+        {id: "improveEnglish", title: "Improve English"},
+        {id: "improveEnglishCreative", title: "Improve English - Creative"},
+        {id: "addCommentsToCode", title: "Add Comments to Code"},
+        {id: "summarizeToSingleParagraph", title: "Summarize to a Single Paragraph"},
+        {id: "aiQuiz", title: "AI Quiz"}
+    ];
+
+    menuItems.forEach(item => {
+        chrome.contextMenus.create({
+            id: item.id,
+            title: item.title,
+            contexts: contexts
+        });
     });
 });
 
@@ -57,34 +49,53 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
 });
 
-function callChatGPT(text, options, callback) {
-    const data = { prompt: text, max_tokens: 150, ...options };
-    fetch('https://api.openai.com/v1/engines/chatgpt/completions', {
+function showError(tabId, errorMessage) {
+    // Check if all necessary properties are set correctly
+    console.log("Creating notification with error message:", errorMessage);
+
+    chrome.notifications.create('', {  // empty string for the notification ID so Chrome generates one
+        type: "basic",
+        iconUrl: "icon48.png",  // Make sure this path is correct relative to your extension's directory
+        title: "Error Notification",
+        message: errorMessage
+    }, function(notificationId) {
+        if (chrome.runtime.lastError) {
+            console.error("Failed to create notification:", chrome.runtime.lastError);
+        } else {
+            console.log("Notification created with ID:", notificationId);
+        }
+    });
+}
+
+function callChatGPT(text, options, callback, tabId) {
+    console.log('Making API Call with:', text, options); // Log the request details
+    fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-            'Authorization': process.env.OPEN_API_AI_KEY,
+            'Authorization': `Bearer ${API_KEY}`,
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            "model": "gpt-3.5-turbo",
+            "prompt": text,
+            "max_tokens": 150,
+        }),
     })
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+            console.log('API Response Received:', response);
             return response.json();
         })
         .then(data => {
-            console.log(data);
-            if (data.choices && data.choices.length > 0) {
+            console.log('API Data:', data); // Log the actual data received
+            if (data.choices && data.choices.length > 0 && data.choices[0].text.trim() !== '') {
                 callback(data.choices[0].text);
             } else {
-                console.error('No choices available or bad API response', data);
-                alert('Failed to get a valid response from the API');
+                showError(tabId, 'No valid response from the API.');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Error making API request');
+            console.error('API Request Failed:', error);
+            showError(tabId, 'Error making API request: ' + error.message);
         });
 }
 
