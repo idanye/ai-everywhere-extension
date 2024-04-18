@@ -5,7 +5,7 @@ chrome.runtime.onInstalled.addListener(() => {
     const menuItems = [
         {id: "improveEnglish", title: "Improve English"},
         {id: "improveEnglishCreative", title: "Improve English - Creative"},
-        {id: "addCommentsToCode", title: "Add Comments to Text"},
+        {id: "addCommentsToText", title: "Add Comments to Text"},
         {id: "summarizeToSingleParagraph", title: "Summarize to a Single Paragraph"},
         {id: "aiQuiz", title: "AI Quiz"}
     ];
