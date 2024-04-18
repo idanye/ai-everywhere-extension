@@ -6,8 +6,11 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <h1>AI Results</h1>
-    <div id="results">Results will appear here when you use context menu options on the web page.</div>
+    <h1 id="optionName">AIEverywhere Results</h1>
+    <h2 id="siteName" style="font-size: small; text-align: center;"></h2>
+    <div id="loader" class="loader"></div>
+    <div id="results" style="display:none;"></div>
+    <button id="refreshButton">Refresh Results</button>
     <script src="popup.js"></script>
 </body>
 </html>
