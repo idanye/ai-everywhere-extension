@@ -5,12 +5,14 @@ body {
     padding: 10px;
     background-color: #f9f9f9; /* Light grey background */
 }
+
 h1 {
     color: #333; /* Dark grey color */
     font-size: 20px;
     text-align: center;
     margin-bottom: 20px;
 }
+
 #results {
     background-color: #fff; /* White background for the results area */
     border: 1px solid #ddd; /* Light grey border */
@@ -21,16 +23,20 @@ h1 {
     font-size: 14px;
     color: #555; /* Darker grey for text */
 }
+
 #results p {
     margin: 0.5em 0;
 }
+
 #results ul {
     list-style-type: disc; /* Adds bullets to list items */
     padding-left: 20px;
 }
+
 #results li {
     margin: 0.5em 0;
 }
+
 .loader {
     display: none; /* Hidden by default, shown when JavaScript changes its style */
     border: 5px solid #f3f3f3; /* Light grey */
@@ -58,4 +64,18 @@ h1 {
     padding: 10px;
     margin-top: 10px;
     font-size: 1em;
+}
+
+.question-block {
+    margin-bottom: 20px; /* Adds space between questions */
+}
+
+.answer-block {
+    padding-left: 20px; /* Indents the answers */
+    margin-bottom: 5px; /* Adds space between answer options */
+}
+
+.correct-answer {
+    color: green;
+    font-weight: bold; /* Makes the correct answer stand out more, optional */
 }

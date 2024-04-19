@@ -24,44 +24,40 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('siteName').textContent = siteName;    }
 
     function formatQuizResults(text) {
-        // First, ensure that text is a string
+        // Ensure text is a string
         if (typeof text !== 'string') {
             console.error('formatQuizResults: text is not a string', text);
             return '';
         }
 
-        // Adjust the regex to handle the last question correctly and split on the question number followed by a period
-        const questionBlocks = text.split(/\n(?=\d+\.)/);
+        // Split the text into blocks for each question
+        const questionBlocks = text.split(/\n(?=\d+\.)/).filter(Boolean);
         return questionBlocks.map(block => {
-            // Remove any trailing dashes that might be separators
-            block = block.trim();
+            // Trim each block and remove any trailing separators
+            block = block.trim().replace(/-+$/, '');
 
             const parts = block.split('\n').map(part => part.trim()); // Trim all parts
-            if (parts.length < 3) { // There should be at least a question, answers, and a correct answer
-                console.error('formatQuizResults: not enough parts in block', block);
-                return '';
-            }
             const question = parts[0];
+            const correctAnswerLine = parts.find(part => part.toLowerCase().startsWith('correct answer:'));
+            const correctAnswerIndex = parts.indexOf(correctAnswerLine);
 
-            // Find the correct answer line index and extract the answer, making the search case-insensitive
-            const correctAnswerIndex = parts.findIndex(part => part.toLowerCase().startsWith('correct answer:'));
-            if (correctAnswerIndex === -1) {
-                console.error('formatQuizResults: correct answer line not found in block', block);
+            // Validate block structure
+            if (correctAnswerIndex === -1 || parts.length < correctAnswerIndex + 1) {
+                console.error('formatQuizResults: correct answer line not found in block or block structure is incorrect', block);
                 return '';
             }
-            const correctAnswer = parts[correctAnswerIndex].split(':').slice(1).join(':').trim();
 
-            // Collect all answer choices except the 'Correct answer:' line
-            const answers = parts.slice(1, correctAnswerIndex);
+            // Extract the correct answer and the list of answers
+            const correctAnswer = correctAnswerLine.split(':').slice(1).join(':').trim();
+            const answers = parts.slice(1, correctAnswerIndex); // Everything between question and correct answer
 
-            let questionHTML = `<p><strong>${question}</strong></p>`;
+            let questionHTML = `<div class="question-block"><p><strong>${question}</strong></p>`;
             let answersHTML = answers.map(answer => {
-                // Check if the current answer is the correct one.
-                const isCorrect = answer === correctAnswer;
-                return `<div${isCorrect ? ' style="color: green;"' : ''}>${answer}</div>`; // Use div instead of li for answers
+                const isCorrect = answer.trim() === correctAnswer;
+                return `<div class="answer-block${isCorrect ? ' correct-answer' : ''}">${answer}</div>`;
             }).join('');
 
-            return `${questionHTML}<div>${answersHTML}</div>`; // Use div to wrap answers
+            return `${questionHTML}${answersHTML}</div>`;
         }).join('');
     }
 
