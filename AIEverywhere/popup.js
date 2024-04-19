@@ -2,8 +2,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let lastUpdateTime = 0;
 
     function displayLoader(shouldDisplay) {
-        document.getElementById('loader').style.display = shouldDisplay ? 'block' : 'none';
-        document.getElementById('results').style.display = shouldDisplay ? 'none' : 'block';
+        const loader = document.querySelector('.loader'); // Use class selector instead of ID
+        const results = document.getElementById('results');
+        if(loader && results) {
+            loader.style.display = shouldDisplay ? 'block' : 'none';
+            results.style.display = shouldDisplay ? 'none' : 'block';
+        } else {
+            console.error('Loader or Results elements not found!');
+        }
     }
 
     function updateTitleAndSiteName(menuItemId, siteName) {
@@ -18,31 +24,50 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('siteName').textContent = siteName;    }
 
     function formatQuizResults(text) {
-        const questionBlocks = text.split(/\n(?=\d+\.)/); // Split by question number, look ahead to keep the number
+        // First, ensure that text is a string
+        if (typeof text !== 'string') {
+            console.error('formatQuizResults: text is not a string', text);
+            return '';
+        }
+
+        // Adjust the regex to handle the last question correctly and split on the question number followed by a period
+        const questionBlocks = text.split(/\n(?=\d+\.)/);
         return questionBlocks.map(block => {
-            const parts = block.split('\n');
+            // Remove any trailing dashes that might be separators
+            block = block.trim();
+
+            const parts = block.split('\n').map(part => part.trim()); // Trim all parts
+            if (parts.length < 3) { // There should be at least a question, answers, and a correct answer
+                console.error('formatQuizResults: not enough parts in block', block);
+                return '';
+            }
             const question = parts[0];
-            const answers = parts.slice(1, parts.length - 1);
-            const correctAnswerLine = parts[parts.length - 1];
-            const correctAnswerMatch = correctAnswerLine.match(/Correct Answer:\s*(.*)/);
-            const correctAnswer = correctAnswerMatch ? correctAnswerMatch[1].trim() : '';
 
-            // Format the question
+            // Find the correct answer line index and extract the answer, making the search case-insensitive
+            const correctAnswerIndex = parts.findIndex(part => part.toLowerCase().startsWith('correct answer:'));
+            if (correctAnswerIndex === -1) {
+                console.error('formatQuizResults: correct answer line not found in block', block);
+                return '';
+            }
+            const correctAnswer = parts[correctAnswerIndex].split(':').slice(1).join(':').trim();
+
+            // Collect all answer choices except the 'Correct answer:' line
+            const answers = parts.slice(1, correctAnswerIndex);
+
             let questionHTML = `<p><strong>${question}</strong></p>`;
-
-            // Format the answers, highlighting the correct one
             let answersHTML = answers.map(answer => {
-                const isCorrect = answer.trim().endsWith(correctAnswer);
-                return `<li${isCorrect ? ' style="color: green;"' : ''}>${answer}</li>`;
+                // Check if the current answer is the correct one.
+                const isCorrect = answer === correctAnswer;
+                return `<div${isCorrect ? ' style="color: green;"' : ''}>${answer}</div>`; // Use div instead of li for answers
             }).join('');
 
-            return `${questionHTML}<ul>${answersHTML}</ul>`;
+            return `${questionHTML}<div>${answersHTML}</div>`; // Use div to wrap answers
         }).join('');
     }
 
     function formatResults(text) {
         // Detect if the text is in the format of an AI-generated quiz
-        if (text.trim().indexOf('1.') === 0) {
+        if (text.trim().startsWith('1.')) {
             return formatQuizResults(text);
         }
 
@@ -51,7 +76,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateResults() {
         chrome.storage.local.get(['result', 'requestPending', 'menuItemId', 'siteName'], function(data) {
+            console.log('Storage Data:', data); // Added for debugging
             displayLoader(!!data.requestPending);
+
             const resultsContainer = document.getElementById('results');
             if (data.result) {
                 updateTitleAndSiteName(data.menuItemId, data.siteName);
