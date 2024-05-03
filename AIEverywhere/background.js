@@ -27,7 +27,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             userPrompt: `${info.menuItemId === 'improveEnglish' ? "Improve this text's english:\n" :
                     info.menuItemId === 'improveEnglishCreative' ? "Improve this text's english and be creative:\n" :
                     info.menuItemId === 'addCommentsToText' ? "Add comments to the text as bullets. Keep it appropriate to the amount of text:\n" : 
-                    info.menuItemId === 'summarizeToSingleParagraph' ? "Summarize this text to a single paragraph, capture the main essence:\n" :
+                    info.menuItemId === 'summarizeToSingleParagraph' ? "Summarize this text to a paragraph (200 words max), capture the main essence:\n" :
                     "Create 10 multiple choice questions from this text, state the correct answer to each question:\n"}${info.selectionText}`
         };
         callChatGPT(info.selectionText, options, response => {
